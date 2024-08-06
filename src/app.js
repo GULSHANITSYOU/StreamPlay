@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 
-// +++++++ Middlewares ++++++++++ 
+// +++++++ Middlewares ++++++++++
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN,
@@ -23,7 +23,18 @@ app.use(express.urlencoded({ extended: false, limit: "20kb" }));
 
 // =========== Middlewares for cookie parsing ======
 app.use(cookieParser());
-// ========= Middlewares for Media (🙄) ======= 
+// ========= Middlewares for Media (🙄) =======
 app.use(express.static("public"));
+
+// ========== Routers ==============
+
+import userRouter from "./routes/user.route.js";
+
+
+
+//http://localhost:8000/api/v1/users/register
+app.use("/api/v1/users",userRouter);
+
+app.use("/api/v1/users", userRouter);
 
 export { app };
