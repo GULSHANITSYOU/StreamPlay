@@ -9,7 +9,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const { fullName, username, email, password } = req.body;
 
   // Validation - non empty.
-  if (
+  if (!fullName || !username || !email || !password ||
     [fullName, username, email, password].some((feild) => feild?.trim() === "")
   ) {
     throw new apiError(400, "All feild are required");
@@ -21,7 +21,7 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 
   if (existuser) {
-    throw new apiError(409, "user with emai or username already exists");
+    throw new apiError(409, "user with email or username already exists");
   }
 
   // check for image or avtar
