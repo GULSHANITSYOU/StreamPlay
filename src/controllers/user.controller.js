@@ -9,7 +9,11 @@ const registerUser = asyncHandler(async (req, res) => {
   const { fullName, username, email, password } = req.body;
 
   // Validation - non empty.
-  if (!fullName || !username || !email || !password ||
+  if (
+    !fullName ||
+    !username ||
+    !email ||
+    !password ||
     [fullName, username, email, password].some((feild) => feild?.trim() === "")
   ) {
     throw new apiError(400, "All feild are required");
@@ -25,8 +29,23 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   // check for image or avtar
-  const avatarLocalPath = req.files?.avtar[0]?.path;
-  const coverImageLocalPath = req.files?.coverImage[0]?.path;
+  let avatarLocalPath;
+  if (
+    req.files &&
+    Array.isArray(req.files.avtar) &&
+    req.files.avtar.length > 0
+  ) {
+    avatarLocalPath = req.files.avtar[0].path;
+  }
+
+  let coverImageLocalPath;
+  if (
+    req.files &&
+    Array.isArray(req.files.coverImage) &&
+    req.files.coverImage.length > 0
+  ) {
+    avatarLocalPath = req.files.coverImage[0].path;
+  }
 
   if (!avatarLocalPath) {
     throw new apiError(400, "avtar file is required!");
