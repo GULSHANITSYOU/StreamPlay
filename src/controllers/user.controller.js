@@ -6,18 +6,18 @@ import { apiResponse } from "../utils/apiResponse.js";
 
 const generatAccessAndRefreshToken = async (userId) => {
   try {
-    const user = await User.findById({ userId });
-    const accessToken = user.generatAccessToken();
-    const refershToken = user.generatRefreshToken();
+    const user = await User.findById(userId);
+    const accessToken = await user.generatAccessToken();
+    const refershToken = await user.generatRefreshToken();
 
     user.refershToken = refershToken;
-    await User.save({ validateBeforeSave: false });
+    await user.save({ validateBeforeSave: false });
 
     return { accessToken, refershToken };
   } catch (error) {
     throw new apiError(
       500,
-      "somthing went wrong while genrating refresh and access token "
+      "somthing went wrong while generating refresh and access token "
     );
   }
 };
@@ -110,7 +110,7 @@ const loginUser = asyncHandler(async (req, res) => {
   // get data --> body ( usernme || email and password)
   const { username, email, password } = req.body;
 
-  if (!username || !email) {
+  if (!(username || email)) {
     throw new apiError(400, "please check you email or username is wrong");
   }
 
@@ -125,7 +125,7 @@ const loginUser = asyncHandler(async (req, res) => {
   if (!(await user.isPasswordCorrect(password)))
     throw new apiError(401, "invalid user credentials");
 
-  const { refershToken, accessToken } = await generatAccessAndRefreshToken(
+  const { accessToken, refershToken } = await generatAccessAndRefreshToken(
     user._id
   );
 
