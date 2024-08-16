@@ -301,7 +301,8 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
   const coverImage = await uploadOnCloudinary(localPathFile);
 
-  if (!coverImage.url) throw new apiError(500, "Error while uploding coverImage file");
+  if (!coverImage.url)
+    throw new apiError(500, "Error while uploding coverImage file");
 
   const user = await User.findByIdAndUpdate(
     req.user?._id,
@@ -318,6 +319,75 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     .json(new apiResponse(201, user, "avatar has change successfully"));
 });
 
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+
+  if (!username?.trim()) throw new apiError(400, "username is missing");
+
+  const channel = await User.aggregate([
+    {
+      $match: {
+        username: username.toLowerCase(),
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribedTo",
+      },
+    },
+    {
+      $addFields: {
+        subscribersCount: {
+          $size: "$subscribers",
+        },
+        channelSubscribedToCount: {
+          $size: "subscribedTo",
+        },
+        isSubscribed: {
+          $cond: {
+            if: { $in: [req.user._id, "$subscribers"] },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        fullName: 1,
+        username: 1,
+        subscribersCount: 1,
+        channelSubscribedToCount: 1,
+        isSubscribed: 1,
+        avtar: 1,
+        coverImage: 1,
+        email: 1,
+      },
+    },
+  ]);
+
+  console.log(channel);
+
+  if (!channel?.length) throw new apiError(404, "channel do'nt exist");
+
+  return res
+    .status(200)
+    .json(
+      new apiResponse(200, channel[0], "user channel feteched succussfully")
+    );
+});
+
 export {
   registerUser,
   loginUser,
@@ -326,5 +396,6 @@ export {
   changeCurrentPassword,
   getCurrentUser,
   updateUserAvatar,
-  updateUserCoverImage
+  updateUserCoverImage,
+  getUserChannelProfile,
 };
